@@ -13,6 +13,10 @@ export function getProjectEditorPath(project) {
   return `/editor/${encodeURIComponent(createProjectSlug(project?.name))}`;
 }
 
+export function getProjectPreviewPath(project) {
+  return `/preview/${encodeURIComponent(createProjectSlug(project?.name))}`;
+}
+
 export function findProjectByRouteParam(projects, routeParam) {
   const decodedParam = decodeURIComponent(routeParam || "");
 

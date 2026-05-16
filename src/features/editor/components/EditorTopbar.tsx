@@ -1,11 +1,13 @@
+import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function EditorTopbar({ projectName, nameDraft, setNameDraft, onCommitName }) {
   return (
     <header className="editor-topbar">
       <div className="editor-topbar-left">
+        
         <Link className="button ghost" to="/">
-          Back to Projects
+          <ArrowLeft />
         </Link>
         <span className="project-route-name">{projectName}</span>
       </div>

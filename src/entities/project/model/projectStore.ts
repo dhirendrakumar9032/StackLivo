@@ -1,4 +1,11 @@
-import { buildProjectPackageJson, createReactBoilerplate } from "@/entities/project/model/projectTemplates";
+import {
+  buildProjectPackageJson,
+  createJavaScriptBoilerplate,
+  createReactBoilerplate,
+  normalizeProjectType,
+  PROJECT_TYPES,
+} from "@/entities/project/model/projectTemplates";
+import type { ProjectType } from "@/entities/project/model/projectTemplates";
 
 export const STORAGE_KEY = "react_online_editor_projects_v3";
 const LEGACY_STORAGE_KEYS = ["react_online_editor_projects_v2", "react_online_editor_projects_v1"];
@@ -36,7 +43,23 @@ function getInitialActiveFile(files, existingActiveFile) {
     return "/App.jsx";
   }
 
+  if (files["/src/index.js"]) {
+    return "/src/index.js";
+  }
+
+  if (files["/index.html"]) {
+    return "/index.html";
+  }
+
   return Object.keys(files)[0] || "/src/App.jsx";
+}
+
+function inferProjectType(project) {
+  if (project?.type || project?.projectType) {
+    return normalizeProjectType(project.type || project.projectType);
+  }
+
+  return project?.files?.["/src/App.jsx"] ? PROJECT_TYPES.REACT : PROJECT_TYPES.JAVASCRIPT;
 }
 
 function normalizeDependencies(input) {
@@ -54,16 +77,16 @@ function normalizeDependencies(input) {
   }, {});
 }
 
-function syncPackageJsonFile(files, projectName, dependencies) {
+function syncPackageJsonFile(files, projectName, dependencies, projectType: ProjectType = PROJECT_TYPES.REACT) {
   return {
     ...files,
     "/package.json": {
-      code: buildProjectPackageJson(projectName, dependencies),
+      code: buildProjectPackageJson(projectName, dependencies, projectType),
     },
   };
 }
 
-function removeDuplicateBoilerplateFiles(files) {
+export function removeDuplicateBoilerplateFiles(files, projectType: ProjectType = PROJECT_TYPES.REACT) {
   const nextFiles = { ...files };
 
   if (nextFiles["/src/App.jsx"]) {
@@ -80,7 +103,7 @@ function removeDuplicateBoilerplateFiles(files) {
     delete nextFiles["/styles.css"];
   }
 
-  if (nextFiles["/public/index.html"]) {
+  if (projectType === PROJECT_TYPES.REACT && nextFiles["/public/index.html"]) {
     delete nextFiles["/index.html"];
   }
 
@@ -93,14 +116,17 @@ function normalizeProject(project) {
   }
 
   const dependencies = normalizeDependencies(project.dependencies);
+  const projectType = inferProjectType(project);
   const files = syncPackageJsonFile(
-    removeDuplicateBoilerplateFiles(project.files),
+    removeDuplicateBoilerplateFiles(project.files, projectType),
     project.name,
-    dependencies
+    dependencies,
+    projectType
   );
 
   return {
     ...project,
+    type: projectType,
     files,
     dependencies,
     activeFile: getInitialActiveFile(files, project.activeFile),
@@ -146,20 +172,27 @@ export function persistProjectsToStorage(projects) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
 }
 
-export function createProjectEntity(name, existingProjectCount) {
+export function createProjectEntity(name, existingProjectCount, projectType = PROJECT_TYPES.REACT) {
+  const normalizedProjectType = normalizeProjectType(projectType);
   const trimmedName = name?.trim();
-  const projectName = trimmedName || `React Project ${existingProjectCount + 1}`;
+  const fallbackPrefix = normalizedProjectType === PROJECT_TYPES.REACT ? "React Project" : "JS Playground";
+  const projectName = trimmedName || `${fallbackPrefix} ${existingProjectCount + 1}`;
   const timestamp = new Date().toISOString();
   const dependencies = {};
+  const files =
+    normalizedProjectType === PROJECT_TYPES.REACT
+      ? createReactBoilerplate(projectName, dependencies)
+      : createJavaScriptBoilerplate(projectName, dependencies);
 
   return {
     id: generateId(),
     name: projectName,
+    type: normalizedProjectType,
     createdAt: timestamp,
     updatedAt: timestamp,
-    activeFile: "/src/App.jsx",
+    activeFile: normalizedProjectType === PROJECT_TYPES.REACT ? "/src/App.jsx" : "/src/index.js",
     dependencies,
-    files: createReactBoilerplate(projectName, dependencies),
+    files,
   };
 }
 
@@ -195,15 +228,18 @@ export function projectsReducer(state, action) {
           updatedAt: new Date().toISOString(),
         };
 
+        const projectType = normalizeProjectType(nextProject.type);
         const dependencies = normalizeDependencies(nextProject.dependencies);
         const files = syncPackageJsonFile(
-          removeDuplicateBoilerplateFiles(nextProject.files || project.files),
+          removeDuplicateBoilerplateFiles(nextProject.files || project.files, projectType),
           nextProject.name,
-          dependencies
+          dependencies,
+          projectType
         );
 
         return {
           ...nextProject,
+          type: projectType,
           files,
           dependencies,
           activeFile: getInitialActiveFile(files, nextProject.activeFile),
@@ -215,11 +251,13 @@ export function projectsReducer(state, action) {
       const { projectId, snapshot } = action.payload;
 
       return withProjectUpdate(state, projectId, (project) => {
+        const projectType = normalizeProjectType(project.type);
         const dependencies = normalizeDependencies(project.dependencies);
         const files = syncPackageJsonFile(
-          removeDuplicateBoilerplateFiles(snapshot.files || project.files),
+          removeDuplicateBoilerplateFiles(snapshot.files || project.files, projectType),
           project.name,
-          dependencies
+          dependencies,
+          projectType
         );
 
         return {
@@ -239,15 +277,17 @@ export function projectsReducer(state, action) {
       }
 
       return withProjectUpdate(state, projectId, (project) => {
+        const projectType = normalizeProjectType(project.type);
         const dependencies = {
           ...normalizeDependencies(project.dependencies),
           [packageName]: packageVersion,
         };
 
         const files = syncPackageJsonFile(
-          removeDuplicateBoilerplateFiles(project.files),
+          removeDuplicateBoilerplateFiles(project.files, projectType),
           project.name,
-          dependencies
+          dependencies,
+          projectType
         );
 
         return {

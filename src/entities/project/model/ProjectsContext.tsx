@@ -17,8 +17,8 @@ export function ProjectsProvider({ children }) {
   }, [projects]);
 
   const createProject = useCallback(
-    (name) => {
-      const project = createProjectEntity(name, projects.length);
+    (name, projectType) => {
+      const project = createProjectEntity(name, projects.length, projectType);
       dispatch({
         type: ProjectActionTypes.CREATE,
         payload: { project },

@@ -4,11 +4,15 @@ import { SandpackProvider } from "@codesandbox/sandpack-react";
 import { aquaBlue } from "@codesandbox/sandpack-themes";
 
 import { useProjects } from "@/entities/project/model/ProjectsContext";
+import { saveProjectPreviewSnapshot } from "@/entities/project/model/projectPreviewSnapshot";
+import { removeDuplicateBoilerplateFiles } from "@/entities/project/model/projectStore";
 import {
   createProjectSlug,
   findProjectByRouteParam,
   getProjectEditorPath,
+  getProjectPreviewPath,
 } from "@/entities/project/model/projectRoutes";
+import { normalizeProjectType, PROJECT_TYPES } from "@/entities/project/model/projectTemplates";
 import EditorWorkspace from "@/features/editor/components/EditorWorkspace";
 import {
   resolveActiveFile,
@@ -27,9 +31,20 @@ export default function EditorPage() {
   } = useProjects();
 
   const project = findProjectByRouteParam(projects, projectSlug);
-  const activeFile = project ? resolveActiveFile(project.files, project.activeFile) : "/src/App.jsx";
-  const entryFile = project ? resolveEntryFile(project.files) : "/src/App.jsx";
+  const projectType = normalizeProjectType(project?.type);
   const projectPath = project ? getProjectEditorPath(project) : "";
+  const previewPath = project ? getProjectPreviewPath(project) : "";
+
+  /**
+   * Prevent Sandpack from reinitializing
+   * on every parent re-render, and ignore duplicate
+   * template files that may exist in older saved projects.
+   */
+  const sandpackFiles = useMemo(() => {
+    return removeDuplicateBoilerplateFiles(project?.files || {}, projectType);
+  }, [project?.files, projectType]);
+  const activeFile = project ? resolveActiveFile(sandpackFiles, project.activeFile) : "/src/App.jsx";
+  const entryFile = project ? resolveEntryFile(sandpackFiles) : "/src/App.jsx";
 
   const onRenameProject = useCallback(
     (name) => {
@@ -61,13 +76,22 @@ export default function EditorPage() {
     [project, addProjectDependency]
   );
 
-  /**
-   * Prevent Sandpack from reinitializing
-   * on every parent re-render.
-   */
-  const sandpackFiles = useMemo(() => {
-    return project?.files || {};
-  }, [project?.files]);
+  const onPreviewSnapshot = useCallback(
+    (snapshot) => {
+      if (!project || !previewPath) {
+        return;
+      }
+
+      saveProjectPreviewSnapshot(previewPath, {
+        ...project,
+        type: projectType,
+        dependencies: project.dependencies || {},
+        files: snapshot.files,
+        activeFile: snapshot.activeFile,
+      });
+    },
+    [previewPath, project, projectType]
+  );
 
   const sandpackOptions = useMemo(
     () => ({
@@ -81,12 +105,11 @@ export default function EditorPage() {
   const customSetup = useMemo(
     () => ({
       entry: entryFile,
-      environment: "create-react-app" as const,
-      dependencies: project?.dependencies || {},
+      environment: projectType === PROJECT_TYPES.REACT ? ("create-react-app" as const) : ("static" as const),
+      dependencies: projectType === PROJECT_TYPES.REACT ? project?.dependencies || {} : {},
     }),
-    [entryFile, project?.dependencies]
+    [entryFile, project?.dependencies, projectType]
   );
-
   useEffect(() => {
     if (!project) {
       return;
@@ -125,7 +148,10 @@ export default function EditorPage() {
     >
       <EditorWorkspace
         projectName={project.name}
+        projectType={projectType}
         projectDependencies={project.dependencies || {}}
+        previewPath={previewPath}
+        onPreviewSnapshot={onPreviewSnapshot}
         onRenameProject={onRenameProject}
         onSnapshotChange={onSnapshotChange}
         onAddDependency={onAddDependency}

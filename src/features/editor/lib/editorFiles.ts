@@ -74,6 +74,14 @@ export function resolveEntryFile(files) {
     return "/src/index.jsx";
   }
 
+  if (files["/index.html"]) {
+    return "/index.html";
+  }
+
+  if (files["/src/index.js"]) {
+    return "/src/index.js";
+  }
+
   if (files["/index.jsx"]) {
     return "/index.jsx";
   }
@@ -92,6 +100,14 @@ export function resolveActiveFile(files, activeFile) {
 
   if (files["/App.jsx"]) {
     return "/App.jsx";
+  }
+
+  if (files["/src/index.js"]) {
+    return "/src/index.js";
+  }
+
+  if (files["/index.html"]) {
+    return "/index.html";
   }
 
   return Object.keys(files)[0] || "/src/index.jsx";

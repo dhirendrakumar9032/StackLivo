@@ -16,9 +16,11 @@
     "start:api": "node server/index.js"
   },
   "dependencies": {
+    "@babel/standalone": "^7.29.4",
     "@codesandbox/sandpack-react": "^2.20.0",
     "@codesandbox/sandpack-themes": "^2.0.21",
     "@monaco-editor/react": "^4.7.0",
+    "@xterm/xterm": "^6.0.0",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "lucide-react": "^1.16.0",
