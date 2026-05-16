@@ -14,9 +14,12 @@ import EditorTopbar from "@/features/editor/components/EditorTopbar";
 import FileExplorerPanel from "@/features/editor/components/FileExplorerPanel";
 import MonacoCodeEditor from "@/features/editor/components/MonacoCodeEditor";
 import PackageManagerPanel from "@/features/editor/components/PackageManagerPanel";
+import TerminalPanel from "@/features/editor/components/TerminalPanel";
+import { PROJECT_TYPES } from "@/entities/project/model/projectTemplates";
 
 export default function EditorWorkspace({
   projectName,
+  projectType,
   projectDependencies,
   onRenameProject,
   onSnapshotChange,
@@ -28,6 +31,7 @@ export default function EditorWorkspace({
   const [nameDraft, setNameDraft] = useState(projectName);
   const [addingPackage, setAddingPackage] = useState("");
   const [expandedFolders, setExpandedFolders] = useState(() => new Set(["/src"]));
+  const [runRequest, setRunRequest] = useState(0);
 
   const filePathInputRef = useRef(null);
   const packageSearchRef = useRef(null);
@@ -56,11 +60,12 @@ export default function EditorWorkspace({
   const installedPackages = useMemo(() => {
     const userPackages = Object.entries(projectDependencies || {}).sort(([a], [b]) => a.localeCompare(b));
 
-    return [
-      ...Object.entries(BASE_PACKAGES),
-      ...userPackages.filter(([packageName]) => !BASE_PACKAGES[packageName]),
-    ];
-  }, [projectDependencies]);
+    if (projectType !== PROJECT_TYPES.REACT) {
+      return userPackages;
+    }
+
+    return [...Object.entries(BASE_PACKAGES), ...userPackages.filter(([packageName]) => !BASE_PACKAGES[packageName])];
+  }, [projectDependencies, projectType]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -523,6 +528,8 @@ export default function EditorWorkspace({
     [isPackageInstalled, onAddDependency, setPackageError]
   );
 
+  const canRunCode = projectType === PROJECT_TYPES.JAVASCRIPT;
+
   return (
     <div className="editor-page">
       <EditorTopbar
@@ -566,21 +573,49 @@ export default function EditorWorkspace({
         </aside>
 
         <section className="code-panel">
+          {canRunCode ? (
+            <div className="code-panel-toolbar">
+              <span>{sandpack.activeFile}</span>
+              <button className="button primary run-code-button" type="button" onClick={() => setRunRequest((value) => value + 1)}>
+                Run Code
+              </button>
+            </div>
+          ) : null}
+
           <MonacoCodeEditor
             activeFile={sandpack.activeFile}
             code={activeFileCode}
+            height={canRunCode ? "calc(100vh - 228px)" : "calc(100vh - 180px)"}
             onChange={updateActiveFile}
           />
         </section>
 
-        <section className="preview-panel">
-          <div className="preview-title">Preview</div>
-          <SandpackPreview
-            showOpenInCodeSandbox={false}
-            showRefreshButton
-            style={{ height: "calc(100vh - 230px)" }}
-          />
-        </section>
+        <aside className="runtime-panel">
+          <section className="preview-panel">
+            <div className="preview-title">Preview</div>
+            <div className="iframe-preview-shell">
+              <SandpackPreview
+                showOpenInCodeSandbox={false}
+                showRefreshButton
+                style={{ height: "100%" }}
+              />
+            </div>
+          </section>
+
+          {canRunCode ? (
+            <section className="terminal-panel">
+              <div className="preview-title">Terminal</div>
+              <TerminalPanel
+                activeFile={sandpack.activeFile}
+                activeFileCode={activeFileCode}
+                filePaths={visibleFilePaths}
+                installedPackages={installedPackages}
+                projectName={projectName}
+                runRequest={runRequest}
+              />
+            </section>
+          ) : null}
+        </aside>
       </SandpackLayout>
     </div>
   );

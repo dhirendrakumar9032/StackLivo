@@ -20,12 +20,12 @@ function getLanguageFromPath(filePath) {
   return "javascript";
 }
 
-export default function MonacoCodeEditor({ activeFile, code, onChange }) {
+export default function MonacoCodeEditor({ activeFile, code, height = "calc(100vh - 180px)", onChange }) {
   return (
     <Editor
       key={activeFile}
       className="monaco-code-editor"
-      height="calc(100vh - 180px)"
+      height={height}
       language={getLanguageFromPath(activeFile)}
       path={activeFile}
       theme="vs-light"

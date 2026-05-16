@@ -1,36 +1,126 @@
 const indent = (lines) => `${lines.join("\n")}\n`;
 
+export const PROJECT_TYPES = {
+  REACT: "react",
+  JAVASCRIPT: "javascript",
+} as const;
+
+export type ProjectType = (typeof PROJECT_TYPES)[keyof typeof PROJECT_TYPES];
+
+export const PROJECT_TYPE_OPTIONS = [
+  {
+    value: PROJECT_TYPES.REACT,
+    label: "React Project",
+    description: "React components with Sandpack live preview.",
+  },
+  {
+    value: PROJECT_TYPES.JAVASCRIPT,
+    label: "JS Playground",
+    description: "HTML, CSS, and JavaScript with terminal output.",
+  },
+];
+
+export function normalizeProjectType(projectType): ProjectType {
+  return projectType === PROJECT_TYPES.JAVASCRIPT ? PROJECT_TYPES.JAVASCRIPT : PROJECT_TYPES.REACT;
+}
+
 function normalizeProjectPackageName(projectName) {
-  const normalized = (projectName || "react-playground")
+  const normalized = (projectName || "playground")
     .toLowerCase()
     .replace(/[^a-z0-9-_]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-  return normalized || "react-playground";
+  return normalized || "playground";
 }
 
-export function buildProjectPackageJson(projectName, packageDependencies = {}) {
+export function buildProjectPackageJson(
+  projectName,
+  packageDependencies = {},
+  projectType: ProjectType = PROJECT_TYPES.REACT
+) {
   const userDependencies = Object.entries(packageDependencies)
     .filter(([name, version]) => Boolean(name) && Boolean(version))
     .sort(([a], [b]) => a.localeCompare(b));
+  const normalizedProjectType = normalizeProjectType(projectType);
 
   const packageJson = {
     name: normalizeProjectPackageName(projectName),
     private: true,
     version: "1.0.0",
+    main: normalizedProjectType === PROJECT_TYPES.REACT ? "/src/index.jsx" : "/index.html",
     scripts: {
       dev: "vite",
       build: "vite build",
       preview: "vite preview",
     },
-    dependencies: {
-      react: "^18.3.1",
-      "react-dom": "^18.3.1",
-      ...Object.fromEntries(userDependencies),
-    },
+    dependencies:
+      normalizedProjectType === PROJECT_TYPES.REACT
+        ? {
+            react: "^18.3.1",
+            "react-dom": "^18.3.1",
+            ...Object.fromEntries(userDependencies),
+          }
+        : {
+            ...Object.fromEntries(userDependencies),
+          },
   };
 
   return `${JSON.stringify(packageJson, null, 2)}\n`;
+}
+
+export function createJavaScriptBoilerplate(projectName, packageDependencies = {}) {
+  const appTitle = projectName || "JS Playground";
+  const escapedTitle = JSON.stringify(appTitle);
+
+  return {
+    "/index.html": {
+      code: indent([
+        "<!doctype html>",
+        '<html lang="en">',
+        "  <head>",
+        '    <meta charset="UTF-8" />',
+        '    <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
+        '    <link rel="stylesheet" href="/src/style.css" />',
+        "  </head>",
+        "  <body>",
+        '    <main class="app-shell">',
+        '      <h4 id="title">Start Coding</h4>',
+        "    </main>",
+        '    <script type="module" src="/src/index.js"></script>',
+        "  </body>",
+        "</html>",
+      ]),
+    },
+    "/src/index.js": {
+      code: indent([
+        
+        'console.log("JS playground ready");',
+      ]),
+    },
+    "/src/style.css": {
+      code: indent([
+        ":root {",
+        "  color-scheme: dark;",
+        "  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;",
+        "}",
+        "",
+        "* {",
+        "  box-sizing: border-box;",
+        "}",
+        "",
+        ".app-shell {",
+        "  padding: 2rem 1.4rem;",
+        "  border-radius: 20px;",
+        "  text-align: center;",
+        "  background: rgba(8, 16, 36, 0.8);",
+        "}",
+        "",
+      ]),
+    },
+    "/package.json": {
+      code: buildProjectPackageJson(projectName, packageDependencies, PROJECT_TYPES.JAVASCRIPT),
+    },
+  };
 }
 
 export function createReactBoilerplate(projectName, packageDependencies = {}) {
@@ -176,7 +266,7 @@ export function createReactBoilerplate(projectName, packageDependencies = {}) {
       ]),
     },
     "/package.json": {
-      code: buildProjectPackageJson(projectName, packageDependencies),
+      code: buildProjectPackageJson(projectName, packageDependencies, PROJECT_TYPES.REACT),
     },
   };
 }

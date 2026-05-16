@@ -9,6 +9,7 @@ import {
   findProjectByRouteParam,
   getProjectEditorPath,
 } from "@/entities/project/model/projectRoutes";
+import { normalizeProjectType, PROJECT_TYPES } from "@/entities/project/model/projectTemplates";
 import EditorWorkspace from "@/features/editor/components/EditorWorkspace";
 import {
   resolveActiveFile,
@@ -27,6 +28,7 @@ export default function EditorPage() {
   } = useProjects();
 
   const project = findProjectByRouteParam(projects, projectSlug);
+  const projectType = normalizeProjectType(project?.type);
   const activeFile = project ? resolveActiveFile(project.files, project.activeFile) : "/src/App.jsx";
   const entryFile = project ? resolveEntryFile(project.files) : "/src/App.jsx";
   const projectPath = project ? getProjectEditorPath(project) : "";
@@ -81,10 +83,10 @@ export default function EditorPage() {
   const customSetup = useMemo(
     () => ({
       entry: entryFile,
-      environment: "create-react-app" as const,
-      dependencies: project?.dependencies || {},
+      environment: projectType === PROJECT_TYPES.REACT ? ("create-react-app" as const) : ("static" as const),
+      dependencies: projectType === PROJECT_TYPES.REACT ? project?.dependencies || {} : {},
     }),
-    [entryFile, project?.dependencies]
+    [entryFile, project?.dependencies, projectType]
   );
 
   useEffect(() => {
@@ -125,6 +127,7 @@ export default function EditorPage() {
     >
       <EditorWorkspace
         projectName={project.name}
+        projectType={projectType}
         projectDependencies={project.dependencies || {}}
         onRenameProject={onRenameProject}
         onSnapshotChange={onSnapshotChange}

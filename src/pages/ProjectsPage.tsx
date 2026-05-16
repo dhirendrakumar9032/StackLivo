@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import ProjectCard from "@/entities/project/ui/ProjectCard";
 import { useProjects } from "@/entities/project/model/ProjectsContext";
 import { getProjectEditorPath } from "@/entities/project/model/projectRoutes";
+import { PROJECT_TYPE_OPTIONS, PROJECT_TYPES } from "@/entities/project/model/projectTemplates";
 
 export default function ProjectsPage() {
   const { projects, createProject, deleteProject } = useProjects();
   const [newProjectName, setNewProjectName] = useState("");
+  const [projectType, setProjectType] = useState(PROJECT_TYPES.REACT);
   const navigate = useNavigate();
 
   const title = useMemo(() => {
@@ -14,13 +16,13 @@ export default function ProjectsPage() {
       return "No projects yet";
     }
 
-    return `${projects.length} React project${projects.length > 1 ? "s" : ""}`;
+    return `${projects.length} saved playground${projects.length > 1 ? "s" : ""}`;
   }, [projects.length]);
 
   const handleCreateProject = (event) => {
     event.preventDefault();
 
-    const createdProject = createProject(newProjectName);
+    const createdProject = createProject(newProjectName, projectType);
     setNewProjectName("");
     navigate(getProjectEditorPath(createdProject));
   };
@@ -38,16 +40,35 @@ export default function ProjectsPage() {
   return (
     <main className="projects-page">
       <section className="hero">
-        <p className="hero-badge">React Online Editor</p>
-        <h1>Create and manage React projects in your browser</h1>
+        <p className="hero-badge">Online Code Editor</p>
+        <h1>Create React projects or JavaScript playgrounds</h1>
         <p>
-          Create a new project from boilerplate, open any saved project, and continue editing with live preview.
+          Pick a stack, write code with Monaco, preview in Sandpack, and run JavaScript output in the terminal.
         </p>
       </section>
 
       <section className="create-card">
-        <h2>Create New React App</h2>
+        <h2>Create New Playground</h2>
         <form className="create-form" onSubmit={handleCreateProject}>
+          <div className="project-type-options" role="radiogroup" aria-label="Project type">
+            {PROJECT_TYPE_OPTIONS.map((option) => (
+              <label
+                className={`project-type-option ${projectType === option.value ? "active" : ""}`}
+                key={option.value}
+              >
+                <input
+                  checked={projectType === option.value}
+                  name="projectType"
+                  onChange={() => setProjectType(option.value)}
+                  type="radio"
+                  value={option.value}
+                />
+                <span>{option.label}</span>
+                <small>{option.description}</small>
+              </label>
+            ))}
+          </div>
+
           <input
             type="text"
             value={newProjectName}
@@ -56,7 +77,7 @@ export default function ProjectsPage() {
             maxLength={50}
           />
           <button className="button primary" type="submit">
-            + New Project
+            + Create
           </button>
         </form>
       </section>
@@ -74,7 +95,7 @@ export default function ProjectsPage() {
           </div>
         ) : (
           <div className="empty-state">
-            <p>Start by creating your first React application.</p>
+            <p>Start by creating your first React project or JavaScript playground.</p>
           </div>
         )}
       </section>
