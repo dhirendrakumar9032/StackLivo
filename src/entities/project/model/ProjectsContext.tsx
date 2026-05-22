@@ -1,8 +1,10 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useReducer } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useState } from "react";
+import { useAuth } from "@/entities/auth/model/AuthContext";
 import {
   createProjectEntity,
+  isUserCreatedProject,
   loadProjectsFromStorage,
-  persistProjectsToStorage,
+  persistProjectsToUserStorage,
   ProjectActionTypes,
   projectsReducer,
 } from "@/entities/project/model/projectStore";
@@ -10,15 +12,31 @@ import {
 const ProjectsContext = createContext(null);
 
 export function ProjectsProvider({ children }) {
-  const [projects, dispatch] = useReducer(projectsReducer, undefined, loadProjectsFromStorage);
+  const { currentUser } = useAuth();
+  const currentUserId = currentUser?.id || null;
+  const [storageOwnerId, setStorageOwnerId] = useState(currentUserId);
+  const [projects, dispatch] = useReducer(projectsReducer, currentUserId, loadProjectsFromStorage);
 
   useEffect(() => {
-    persistProjectsToStorage(projects);
-  }, [projects]);
+    setStorageOwnerId(currentUserId);
+    dispatch({
+      type: ProjectActionTypes.HYDRATE,
+      payload: { projects: loadProjectsFromStorage(currentUserId) },
+    });
+  }, [currentUserId]);
+
+  useEffect(() => {
+    persistProjectsToUserStorage(projects, storageOwnerId);
+  }, [projects, storageOwnerId]);
 
   const createProject = useCallback(
-    (name, projectType) => {
-      const project = createProjectEntity(name, projects.length, projectType);
+    (name, projectType, options = {}) => {
+      const existingProjectCount =
+        options.practiceQuestionId || options.questionId ? projects.length : projects.filter(isUserCreatedProject).length;
+      const project = createProjectEntity(name, existingProjectCount, projectType, {
+        ...options,
+        ownerId: currentUserId,
+      });
       dispatch({
         type: ProjectActionTypes.CREATE,
         payload: { project },
@@ -26,7 +44,7 @@ export function ProjectsProvider({ children }) {
 
       return project;
     },
-    [projects.length]
+    [currentUserId, projects]
   );
 
   const deleteProject = useCallback((projectId) => {

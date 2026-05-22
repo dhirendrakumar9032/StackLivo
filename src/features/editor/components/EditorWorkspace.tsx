@@ -15,6 +15,7 @@ import FileExplorerPanel from "@/features/editor/components/FileExplorerPanel";
 import MonacoCodeEditor, { EDITOR_THEME_OPTIONS } from "@/features/editor/components/MonacoCodeEditor";
 import PackageManagerPanel from "@/features/editor/components/PackageManagerPanel";
 import PreviewPanel from "@/features/editor/components/PreviewPanel";
+import QuestionDescriptionPanel from "@/features/editor/components/QuestionDescriptionPanel";
 import TerminalPanel from "@/features/editor/components/TerminalPanel";
 import { useEditorLayout } from "@/features/editor/hooks/useEditorLayout";
 import { PROJECT_TYPES } from "@/entities/project/model/projectTemplates";
@@ -23,6 +24,7 @@ export default function EditorWorkspace({
   projectName,
   projectType,
   projectDependencies,
+  practiceQuestion,
   previewPath,
   onPreviewSnapshot,
   onRenameProject,
@@ -37,6 +39,11 @@ export default function EditorWorkspace({
   const [editorTheme, setEditorTheme] = useState("stacklivo-dark");
   const [expandedFolders, setExpandedFolders] = useState(() => new Set(["/src"]));
   const [runRequest, setRunRequest] = useState(0);
+  const [collapsedSidebarSections, setCollapsedSidebarSections] = useState({
+    files: false,
+    packages: false,
+    question: false,
+  });
 
   const filePathInputRef = useRef(null);
   const packageSearchRef = useRef(null);
@@ -149,6 +156,13 @@ export default function EditorWorkspace({
 
       return next;
     });
+  }, []);
+
+  const toggleSidebarSection = useCallback((section) => {
+    setCollapsedSidebarSections((previous) => ({
+      ...previous,
+      [section]: !previous[section],
+    }));
   }, []);
 
   const openFile = useCallback(
@@ -692,6 +706,8 @@ export default function EditorWorkspace({
                 onCreateRootFile={createRootFile}
                 onCreateRootFolder={createRootFolder}
                 onMoveNodes={moveTreeNodes}
+                collapsed={collapsedSidebarSections.files}
+                onToggleCollapsed={() => toggleSidebarSection("files")}
               />
 
               <PackageManagerPanel
@@ -705,6 +721,14 @@ export default function EditorWorkspace({
                 addingPackage={addingPackage}
                 isPackageInstalled={isPackageInstalled}
                 onAddPackage={addPackage}
+                collapsed={collapsedSidebarSections.packages}
+                onToggleCollapsed={() => toggleSidebarSection("packages")}
+              />
+
+              <QuestionDescriptionPanel
+                question={practiceQuestion}
+                collapsed={collapsedSidebarSections.question}
+                onToggleCollapsed={() => toggleSidebarSection("question")}
               />
             </div>
 
@@ -768,7 +792,7 @@ export default function EditorWorkspace({
         <aside
           className={`runtime-panel ${!showPreview && showTerminal ? "runtime-panel-terminal-only" : ""} ${
             !showPreview && !showTerminal ? "runtime-panel-hidden" : ""
-          }`}
+          } ${showPreview && showTerminal ? "runtime-panel-with-terminal" : ""}`}
         >
           <section
             aria-hidden={!showPreview}

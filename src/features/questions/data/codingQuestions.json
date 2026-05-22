@@ -1,0 +1,376 @@
+[
+  {
+    "id": "valid-palindrome",
+    "title": "Valid palindrome",
+    "description": "Determine whether a given string is a valid palindrome after ignoring case and non-alphanumeric characters.",
+    "language": "javascript",
+    "category": "DSA",
+    "difficulty": "Easy",
+    "companies": ["Amazon", "TCS", "Paytm"],
+    "functionName": "isPalindrome",
+    "starter": [
+      "function isPalindrome(value) {",
+      "  // TODO: normalize the string and compare both ends.",
+      "  return false;",
+      "}",
+      "",
+      "console.log(isPalindrome(\"A man, a plan, a canal: Panama\"));",
+      "console.log(isPalindrome(\"race a car\"));"
+    ],
+    "examples": [
+      { "input": "\"A man, a plan, a canal: Panama\"", "output": "true" },
+      { "input": "\"race a car\"", "output": "false" },
+      { "input": "\" \"", "output": "true" }
+    ],
+    "constraints": [
+      "Ignore punctuation, spaces, and case.",
+      "The input is always a string.",
+      "Return a boolean result."
+    ],
+    "signature": "function isPalindrome(value) {\n  // Your code here\n}"
+  },
+  {
+    "id": "sum-arguments",
+    "title": "sum()",
+    "description": "Create a function sum() that returns the sum of all arguments passed to it.",
+    "language": "javascript",
+    "category": "JavaScript",
+    "difficulty": "Easy",
+    "companies": ["Amazon"],
+    "functionName": "sum",
+    "starter": [
+      "function sum(...args) {",
+      "  // TODO: return the total of every argument.",
+      "  return 0;",
+      "}",
+      "",
+      "console.log(sum(1, 2, 3));",
+      "console.log(sum(10, -2, 8, 4));"
+    ],
+    "examples": [
+      { "input": "sum(1, 2, 3)", "output": "6" },
+      { "input": "sum(5)", "output": "5" },
+      { "input": "sum()", "output": "0" }
+    ],
+    "constraints": [
+      "Arguments are valid finite numbers.",
+      "Handle zero or more arguments.",
+      "Do not mutate the arguments list."
+    ],
+    "signature": "function sum(...args) {\n  // Your code here\n}"
+  },
+  {
+    "id": "count-even-numbers",
+    "title": "Count even numbers",
+    "description": "Determine how many even integers are present in a given array of numbers.",
+    "language": "javascript",
+    "category": "DSA",
+    "difficulty": "Easy",
+    "companies": ["Accenture", "TCS", "Wipro", "Infosys", "Capgemini"],
+    "functionName": "countEven",
+    "starter": [
+      "function countEven(numbers) {",
+      "  // TODO: count values divisible by 2.",
+      "  return 0;",
+      "}",
+      "",
+      "console.log(countEven([1, 2, 3, 4, 10, 11]));"
+    ],
+    "examples": [
+      { "input": "[1, 2, 3, 4, 10, 11]", "output": "3" },
+      { "input": "[1, 3, 5]", "output": "0" },
+      { "input": "[]", "output": "0" }
+    ],
+    "constraints": [
+      "Input is always a valid array.",
+      "All values are finite integers.",
+      "Return a number."
+    ],
+    "signature": "function countEven(numbers) {\n  // Your code here\n}"
+  },
+  {
+    "id": "two-sum",
+    "title": "Two sum",
+    "description": "Return indexes of two numbers whose sum equals the target.",
+    "language": "javascript",
+    "category": "DSA",
+    "difficulty": "Easy",
+    "companies": ["Google", "Amazon", "Adobe"],
+    "functionName": "twoSum",
+    "starter": [
+      "function twoSum(nums, target) {",
+      "  // TODO: use a map to track seen values.",
+      "  return [];",
+      "}",
+      "",
+      "console.log(twoSum([2, 7, 11, 15], 9));"
+    ],
+    "examples": [
+      { "input": "nums = [2, 7, 11, 15], target = 9", "output": "[0, 1]" },
+      { "input": "nums = [3, 2, 4], target = 6", "output": "[1, 2]" }
+    ],
+    "constraints": [
+      "Exactly one valid answer exists.",
+      "You cannot use the same element twice.",
+      "Return indexes in any order."
+    ],
+    "signature": "function twoSum(nums, target) {\n  // Your code here\n}"
+  },
+  {
+    "id": "largest-number-formed",
+    "title": "Largest number formed",
+    "description": "Arrange non-negative integers to form the largest possible number.",
+    "language": "javascript",
+    "category": "DSA",
+    "difficulty": "Medium",
+    "companies": ["Amazon", "Paytm"],
+    "functionName": "largestNumber",
+    "starter": [
+      "function largestNumber(numbers) {",
+      "  // TODO: sort by combined string order.",
+      "  return '';",
+      "}",
+      "",
+      "console.log(largestNumber([3, 30, 34, 5, 9]));"
+    ],
+    "examples": [
+      { "input": "[10, 2]", "output": "\"210\"" },
+      { "input": "[3, 30, 34, 5, 9]", "output": "\"9534330\"" },
+      { "input": "[0, 0]", "output": "\"0\"" }
+    ],
+    "constraints": [
+      "Numbers are non-negative integers.",
+      "Return the result as a string.",
+      "Handle all-zero input."
+    ],
+    "signature": "function largestNumber(numbers) {\n  // Your code here\n}"
+  },
+  {
+    "id": "flatten-array",
+    "title": "Flatten nested array",
+    "description": "Flatten a deeply nested array without using Array.prototype.flat.",
+    "language": "javascript",
+    "category": "JavaScript",
+    "difficulty": "Medium",
+    "companies": ["Flipkart", "Adobe"],
+    "functionName": "flattenArray",
+    "starter": [
+      "function flattenArray(input) {",
+      "  // TODO: recursively collect non-array values.",
+      "  return [];",
+      "}",
+      "",
+      "console.log(flattenArray([1, [2, [3, 4]], 5]));"
+    ],
+    "examples": [
+      { "input": "[1, [2, [3, 4]], 5]", "output": "[1, 2, 3, 4, 5]" },
+      { "input": "[[[]], 1]", "output": "[1]" }
+    ],
+    "constraints": [
+      "Do not use Array.prototype.flat.",
+      "Preserve left-to-right order.",
+      "Support any nesting depth that fits call stack or your iterative approach."
+    ],
+    "signature": "function flattenArray(input) {\n  // Your code here\n}"
+  },
+  {
+    "id": "debounce",
+    "title": "Debounce",
+    "description": "Implement debounce(fn, delay) and preserve arguments and this binding.",
+    "language": "javascript",
+    "category": "JavaScript",
+    "difficulty": "Medium",
+    "companies": ["Swiggy", "Uber", "Amazon"],
+    "functionName": "debounce",
+    "starter": [
+      "function debounce(fn, delay) {",
+      "  // TODO: clear the previous timer and schedule a new call.",
+      "  return function debounced(...args) {",
+      "    fn.apply(this, args);",
+      "  };",
+      "}",
+      "",
+      "const log = debounce((value) => console.log(value), 300);",
+      "log(\"Stacklivo\");"
+    ],
+    "examples": [
+      { "input": "Call debounced function three times quickly", "output": "Only the final call runs after delay" },
+      { "input": "debounce(fn, 300)", "output": "fn runs after 300ms of no new calls" }
+    ],
+    "constraints": [
+      "Preserve this binding.",
+      "Forward all arguments.",
+      "Clear the previous timer before scheduling a new one."
+    ],
+    "signature": "function debounce(fn, delay) {\n  // Your code here\n}"
+  },
+  {
+    "id": "toggle-password",
+    "title": "Toggle password",
+    "description": "Create a React component that lets users show and hide a password input.",
+    "language": "react",
+    "category": "Machine Coding",
+    "difficulty": "Easy",
+    "companies": ["TCS", "Amazon"],
+    "requirements": [
+      "Render a password input.",
+      "Provide a button to toggle between password and text input types.",
+      "Button text should clearly show the current action.",
+      "Keep the entered password value when toggling."
+    ],
+    "edgeCases": [
+      "Input should not reset when toggled.",
+      "The button should be keyboard accessible.",
+      "The label should be understandable for screen readers."
+    ],
+    "examples": [
+      { "input": "Type secret and click Show", "output": "Input type changes to text and value remains secret" }
+    ]
+  },
+  {
+    "id": "even-or-odd",
+    "title": "Even or odd",
+    "description": "Create a React component that allows users to input a number and checks whether the number is even or odd. The component displays the result with a short loading delay and handles invalid inputs.",
+    "language": "react",
+    "category": "Machine Coding",
+    "difficulty": "Easy",
+    "companies": ["Adobe", "Amazon"],
+    "requirements": [
+      "A user can enter a number in an input field.",
+      "A button initiates the check.",
+      "Clear any previous result immediately after clicking.",
+      "Show \"Checking...\" for 1 second before displaying the result.",
+      "Display \"The number X is even.\" or \"The number X is odd.\"",
+      "Show a clear error message for invalid or empty input."
+    ],
+    "edgeCases": [
+      "Non-numeric input should display an error.",
+      "Empty input should be handled gracefully.",
+      "Leading and trailing spaces should be ignored.",
+      "Large numbers should be processed correctly.",
+      "Result should only appear after loading completes."
+    ],
+    "examples": [
+      { "input": "12", "output": "The number 12 is even." },
+      { "input": "7", "output": "The number 7 is odd." },
+      { "input": "abc", "output": "Please enter a valid number." }
+    ]
+  },
+  {
+    "id": "todo-list",
+    "title": "To-do list",
+    "description": "Build a to-do list with add, complete, delete, and active count.",
+    "language": "react",
+    "category": "Machine Coding",
+    "difficulty": "Medium",
+    "companies": ["Microsoft", "Wipro"],
+    "requirements": [
+      "Add a new task from an input field.",
+      "Toggle a task between active and completed.",
+      "Delete a task.",
+      "Show the active task count.",
+      "Prevent empty tasks from being added."
+    ],
+    "edgeCases": [
+      "Trim spaces before adding.",
+      "Keep completed styling distinct.",
+      "Use stable ids for list rendering."
+    ],
+    "examples": [
+      { "input": "Add Buy milk", "output": "Task appears with active count 1" }
+    ]
+  },
+  {
+    "id": "accordion",
+    "title": "Accordion",
+    "description": "Build an accordion where one panel can open at a time.",
+    "language": "react",
+    "category": "Machine Coding",
+    "difficulty": "Medium",
+    "companies": ["Meta", "Capgemini"],
+    "requirements": [
+      "Render a list of accordion items.",
+      "Open one panel at a time.",
+      "Clicking the open panel should collapse it.",
+      "Use semantic buttons for headers."
+    ],
+    "edgeCases": [
+      "Long content should wrap correctly.",
+      "Keyboard users should be able to tab through headers."
+    ],
+    "examples": [
+      { "input": "Click section 2", "output": "Section 2 opens and any previous section closes" }
+    ]
+  },
+  {
+    "id": "tabs",
+    "title": "Tabs",
+    "description": "Create a tab interface with active state and content switching.",
+    "language": "react",
+    "category": "Machine Coding",
+    "difficulty": "Medium",
+    "companies": ["Amazon", "Paytm"],
+    "requirements": [
+      "Render tab buttons from data.",
+      "Show only the active tab panel.",
+      "Highlight the active tab.",
+      "Keep the component reusable."
+    ],
+    "edgeCases": [
+      "Default to the first tab.",
+      "Handle any number of tabs.",
+      "Avoid duplicated tab content markup."
+    ],
+    "examples": [
+      { "input": "Click Profile tab", "output": "Profile content becomes visible" }
+    ]
+  },
+  {
+    "id": "stopwatch",
+    "title": "Stopwatch",
+    "description": "Build a stopwatch with start, pause, reset, and elapsed time display.",
+    "language": "react",
+    "category": "Machine Coding",
+    "difficulty": "Medium",
+    "companies": ["Flipkart", "Infosys"],
+    "requirements": [
+      "Start the timer.",
+      "Pause the timer.",
+      "Reset elapsed time to zero.",
+      "Display time in mm:ss format.",
+      "Clean up intervals when the component unmounts."
+    ],
+    "edgeCases": [
+      "Repeated Start clicks should not create multiple intervals.",
+      "Pause should preserve elapsed time.",
+      "Reset should stop the timer."
+    ],
+    "examples": [
+      { "input": "Start, wait 3 seconds, pause", "output": "Elapsed time remains around 00:03" }
+    ]
+  },
+  {
+    "id": "star-rating",
+    "title": "Star rating",
+    "description": "Build an interactive star rating component with hover preview.",
+    "language": "react",
+    "category": "Machine Coding",
+    "difficulty": "Medium",
+    "companies": ["Adobe", "Swiggy"],
+    "requirements": [
+      "Render five stars.",
+      "Hovering previews a rating.",
+      "Clicking selects a rating.",
+      "Display the selected rating text."
+    ],
+    "edgeCases": [
+      "Mouse leave should restore the selected rating.",
+      "Initial rating should be zero.",
+      "Buttons should be accessible."
+    ],
+    "examples": [
+      { "input": "Hover star 4", "output": "Four stars look active until mouse leaves" },
+      { "input": "Click star 5", "output": "Rating is saved as 5" }
+    ]
+  }
+]

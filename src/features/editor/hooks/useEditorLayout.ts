@@ -10,12 +10,12 @@ function clampExplorerWidth(width: number) {
 export function useEditorLayout({ hasTerminal }: { hasTerminal: boolean }) {
   const [explorerWidth, setExplorerWidth] = useState(320);
   const [showExplorer, setShowExplorer] = useState(true);
-  const [showPreview, setShowPreview] = useState(true);
+  const [showPreview, setShowPreview] = useState(() => !hasTerminal);
   const [showTerminal, setShowTerminal] = useState(hasTerminal);
   const [expandedMobilePanels, setExpandedMobilePanels] = useState(() => ({
     explorer: true,
     editor: true,
-    preview: true,
+    preview: !hasTerminal,
     terminal: hasTerminal,
   }));
 

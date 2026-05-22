@@ -14,6 +14,7 @@ import {
 } from "@/entities/project/model/projectRoutes";
 import { normalizeProjectType, PROJECT_TYPES } from "@/entities/project/model/projectTemplates";
 import EditorWorkspace from "@/features/editor/components/EditorWorkspace";
+import { getCodingQuestionById, getCodingQuestionByTitle } from "@/features/questions/model/codingQuestions";
 import {
   resolveActiveFile,
   resolveEntryFile,
@@ -34,6 +35,10 @@ export default function EditorPage() {
   const projectType = normalizeProjectType(project?.type);
   const projectPath = project ? getProjectEditorPath(project) : "";
   const previewPath = project ? getProjectPreviewPath(project) : "";
+  const practiceQuestion = useMemo(
+    () => getCodingQuestionById(project?.practiceQuestionId) || getCodingQuestionByTitle(project?.name),
+    [project?.name, project?.practiceQuestionId]
+  );
 
   /**
    * Prevent Sandpack from reinitializing
@@ -150,6 +155,7 @@ export default function EditorPage() {
         projectName={project.name}
         projectType={projectType}
         projectDependencies={project.dependencies || {}}
+        practiceQuestion={practiceQuestion}
         previewPath={previewPath}
         onPreviewSnapshot={onPreviewSnapshot}
         onRenameProject={onRenameProject}
