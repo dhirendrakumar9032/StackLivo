@@ -60,7 +60,7 @@ Live app: [https://stack-livo.vercel.app/](https://stack-livo.vercel.app/)
 
 ### Dashboard
 
-<img width="1449" height="790" alt="Stacklivo dashboard" src="https://github.com/user-attachments/assets/da7c653c-92e4-4feb-8214-30b5b08de560" />
+<img width="1470" height="801" alt="image" src="https://github.com/user-attachments/assets/9908c417-1421-47d2-b873-4df5acb64937" />
 
 ### Editor
 
