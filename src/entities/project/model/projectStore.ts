@@ -11,6 +11,7 @@ export const STORAGE_KEY = "react_online_editor_projects_v3";
 const LEGACY_STORAGE_KEYS = ["react_online_editor_projects_v2", "react_online_editor_projects_v1"];
 
 export const ProjectActionTypes = {
+  HYDRATE: "project/hydrate",
   CREATE: "project/create",
   DELETE: "project/delete",
   UPDATE: "project/update",
@@ -28,6 +29,10 @@ function generateId() {
 
 function sortProjects(projects) {
   return [...projects].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+}
+
+function getStorageKey(userId) {
+  return userId ? `${STORAGE_KEY}:${userId}` : STORAGE_KEY;
 }
 
 function getInitialActiveFile(files, existingActiveFile) {
@@ -110,6 +115,10 @@ export function removeDuplicateBoilerplateFiles(files, projectType: ProjectType 
   return nextFiles;
 }
 
+export function isUserCreatedProject(project) {
+  return project?.source !== "practice" && !project?.practiceQuestionId;
+}
+
 function normalizeProject(project) {
   if (!project || !project.id || !project.name || !project.files) {
     return null;
@@ -130,22 +139,28 @@ function normalizeProject(project) {
     files,
     dependencies,
     activeFile: getInitialActiveFile(files, project.activeFile),
+    source: project.source || (project.practiceQuestionId ? "practice" : "workspace"),
+    ownerId: project.ownerId || null,
     createdAt: project.createdAt || new Date().toISOString(),
     updatedAt: project.updatedAt || new Date().toISOString(),
   };
 }
 
-function readStorageRecord() {
+function readStorageRecord(userId = null) {
   if (typeof localStorage === "undefined") {
     return null;
   }
 
-  return localStorage.getItem(STORAGE_KEY) || LEGACY_STORAGE_KEYS.map((key) => localStorage.getItem(key)).find(Boolean);
+  if (userId) {
+    return localStorage.getItem(getStorageKey(userId));
+  }
+
+  return localStorage.getItem(getStorageKey(userId)) || LEGACY_STORAGE_KEYS.map((key) => localStorage.getItem(key)).find(Boolean);
 }
 
-export function loadProjectsFromStorage() {
+export function loadProjectsFromStorage(userId = null) {
   try {
-    const raw = readStorageRecord();
+    const raw = readStorageRecord(userId);
 
     if (!raw) {
       return [];
@@ -165,11 +180,15 @@ export function loadProjectsFromStorage() {
 }
 
 export function persistProjectsToStorage(projects) {
+  persistProjectsToUserStorage(projects);
+}
+
+export function persistProjectsToUserStorage(projects, userId = null) {
   if (typeof localStorage === "undefined") {
     return;
   }
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+  localStorage.setItem(getStorageKey(userId), JSON.stringify(projects));
 }
 
 export function createProjectEntity(name, existingProjectCount, projectType = PROJECT_TYPES.REACT, options = {}) {
@@ -202,6 +221,8 @@ export function createProjectEntity(name, existingProjectCount, projectType = PR
     ),
     dependencies,
     files,
+    source: options.source || (options.practiceQuestionId || options.questionId ? "practice" : "workspace"),
+    ownerId: options.ownerId || null,
     practiceQuestionId: options.practiceQuestionId || options.questionId || null,
   };
 }
@@ -220,6 +241,10 @@ function withProjectUpdate(projects, projectId, updater) {
 
 export function projectsReducer(state, action) {
   switch (action.type) {
+    case ProjectActionTypes.HYDRATE: {
+      return sortProjects(action.payload.projects || []);
+    }
+
     case ProjectActionTypes.CREATE: {
       return sortProjects([action.payload.project, ...state]);
     }

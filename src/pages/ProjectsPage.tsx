@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ProjectCard from "@/entities/project/ui/ProjectCard";
 import { useProjects } from "@/entities/project/model/ProjectsContext";
 import { getProjectEditorPath } from "@/entities/project/model/projectRoutes";
+import { isUserCreatedProject } from "@/entities/project/model/projectStore";
 import { PROJECT_TYPE_OPTIONS, PROJECT_TYPES } from "@/entities/project/model/projectTemplates";
 import {
   CODING_QUESTIONS,
@@ -10,11 +10,16 @@ import {
   QUESTION_LANGUAGES,
   createQuestionProjectFiles,
   getQuestionActiveFile,
+  getCodingQuestionByTitle,
   getQuestionProjectType,
 } from "@/features/questions/model/codingQuestions";
 
+function isSavedWorkspaceProject(project) {
+  return isUserCreatedProject(project) && !getCodingQuestionByTitle(project.name);
+}
+
 export default function ProjectsPage() {
-  const { projects, createProject, deleteProject } = useProjects();
+  const { projects, createProject } = useProjects();
   const [newProjectName, setNewProjectName] = useState("");
   const [projectType, setProjectType] = useState(PROJECT_TYPES.REACT);
   const [questionLanguage, setQuestionLanguage] = useState(QUESTION_LANGUAGES.ALL);
@@ -22,8 +27,9 @@ export default function ProjectsPage() {
   const [questionCategory, setQuestionCategory] = useState("All");
   const [questionSearch, setQuestionSearch] = useState("");
   const navigate = useNavigate();
-  const reactProjectCount = projects.filter((project) => project.type !== PROJECT_TYPES.JAVASCRIPT).length;
-  const jsProjectCount = projects.filter((project) => project.type === PROJECT_TYPES.JAVASCRIPT).length;
+  const savedProjects = useMemo(() => projects.filter(isSavedWorkspaceProject), [projects]);
+  const reactProjectCount = savedProjects.filter((project) => project.type !== PROJECT_TYPES.JAVASCRIPT).length;
+  const jsProjectCount = savedProjects.filter((project) => project.type === PROJECT_TYPES.JAVASCRIPT).length;
   const selectedProjectType = PROJECT_TYPE_OPTIONS.find((option) => option.value === projectType);
   const questionCategories = useMemo(
     () => ["All", ...Array.from(new Set(CODING_QUESTIONS.map((question) => question.category)))],
@@ -51,30 +57,12 @@ export default function ProjectsPage() {
     });
   }, [questionCategory, questionDifficulty, questionLanguage, questionSearch]);
 
-  const title = useMemo(() => {
-    if (!projects.length) {
-      return "No projects yet";
-    }
-
-    return `${projects.length} saved playground${projects.length > 1 ? "s" : ""}`;
-  }, [projects.length]);
-
   const handleCreateProject = (event) => {
     event.preventDefault();
 
     const createdProject = createProject(newProjectName, projectType);
     setNewProjectName("");
     navigate(getProjectEditorPath(createdProject));
-  };
-
-  const handleDeleteProject = (projectId) => {
-    const shouldDelete = window.confirm("Delete this project permanently?");
-
-    if (!shouldDelete) {
-      return;
-    }
-
-    deleteProject(projectId);
   };
 
   const handleStartQuestion = (question) => {
@@ -96,18 +84,20 @@ export default function ProjectsPage() {
           <p>Manage React projects and JavaScript playgrounds from one focused control room.</p>
         </div>
 
-        <div className="dashboard-stats" aria-label="Workspace summary">
-          <div>
-            <strong>{projects.length}</strong>
-            <span>Total</span>
-          </div>
-          <div>
-            <strong>{reactProjectCount}</strong>
-            <span>React</span>
-          </div>
-          <div>
-            <strong>{jsProjectCount}</strong>
-            <span>JavaScript</span>
+        <div className="dashboard-header-actions">
+          <div className="dashboard-stats" aria-label="Workspace summary">
+            <div>
+              <strong>{savedProjects.length}</strong>
+              <span>Saved</span>
+            </div>
+            <div>
+              <strong>{reactProjectCount}</strong>
+              <span>React</span>
+            </div>
+            <div>
+              <strong>{jsProjectCount}</strong>
+              <span>JavaScript</span>
+            </div>
           </div>
         </div>
       </header>
@@ -238,28 +228,6 @@ export default function ProjectsPage() {
             </button>
           ))}
         </div>
-      </section>
-
-      <section className="projects-grid-wrap">
-        <div className="projects-grid-header">
-          <div>
-            <p>Recent work</p>
-            <h2>{title}</h2>
-          </div>
-        </div>
-
-        {projects.length ? (
-          <div className="projects-grid">
-            {projects.map((project) => (
-              <ProjectCard key={project.id} project={project} onDelete={handleDeleteProject} />
-            ))}
-          </div>
-        ) : (
-          <div className="empty-state">
-            <strong>No saved work yet</strong>
-            <p>Create a React project or JavaScript playground to start building in Stacklivo.</p>
-          </div>
-        )}
       </section>
     </main>
   );
