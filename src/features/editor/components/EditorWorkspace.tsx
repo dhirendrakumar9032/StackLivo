@@ -659,24 +659,24 @@ export default function EditorWorkspace({
         nameDraft={nameDraft}
         setNameDraft={setNameDraft}
         onCommitName={commitName}
-      />
-
-      <div className="editor-view-controls" aria-label="Editor layout controls">
-        <button className={`view-toggle ${showExplorer ? "active" : ""}`} type="button" onClick={toggleExplorer}>
-          <span className="view-toggle-dot" />
-          <span>Explorer</span>
-        </button>
-        <button className={`view-toggle ${showPreview ? "active" : ""}`} type="button" onClick={togglePreview}>
-          <span className="view-toggle-dot" />
-          <span>Preview</span>
-        </button>
-        {canRunCode ? (
-          <button className={`view-toggle ${showTerminal ? "active" : ""}`} type="button" onClick={toggleTerminal}>
+      >
+        <div className="editor-view-controls" aria-label="Editor layout controls">
+          <button className={`view-toggle ${showExplorer ? "active" : ""}`} type="button" onClick={toggleExplorer}>
             <span className="view-toggle-dot" />
-            <span>Terminal</span>
+            <span>Explorer</span>
           </button>
-        ) : null}
-      </div>
+          <button className={`view-toggle ${showPreview ? "active" : ""}`} type="button" onClick={togglePreview}>
+            <span className="view-toggle-dot" />
+            <span>Preview</span>
+          </button>
+          {canRunCode ? (
+            <button className={`view-toggle ${showTerminal ? "active" : ""}`} type="button" onClick={toggleTerminal}>
+              <span className="view-toggle-dot" />
+              <span>Terminal</span>
+            </button>
+          ) : null}
+        </div>
+      </EditorTopbar>
 
       <SandpackLayout className="custom-layout">
         {showExplorer ? (
@@ -780,7 +780,7 @@ export default function EditorWorkspace({
             activeFile={sandpack.activeFile}
             code={activeFileCode}
             theme={editorTheme}
-            height="calc(100vh - 228px)"
+            height="calc(100vh - 188px)"
             onChange={updateActiveFile}
             onEditorReady={(editor) => {
               monacoEditorRef.current = editor;
