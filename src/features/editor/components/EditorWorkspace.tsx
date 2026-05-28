@@ -26,7 +26,6 @@ export default function EditorWorkspace({
   projectDependencies,
   practiceQuestion,
   previewPath,
-  onPreviewSnapshot,
   onRenameProject,
   onSnapshotChange,
   onAddDependency,
@@ -604,12 +603,8 @@ export default function EditorWorkspace({
       files,
       activeFile: sandpack.activeFile,
     });
-    onPreviewSnapshot?.({
-      files,
-      activeFile: sandpack.activeFile,
-    });
     window.open(previewPath, "_blank", "noopener,noreferrer");
-  }, [getCurrentFilesSnapshot, onPreviewSnapshot, onSnapshotChange, previewPath, sandpack.activeFile]);
+  }, [getCurrentFilesSnapshot, onSnapshotChange, previewPath, sandpack.activeFile]);
 
   const {
     expandedMobilePanels,

@@ -3,13 +3,14 @@ import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/entities/auth/model/AuthContext";
 
 export default function LoginPage() {
-  const { currentUser, login } = useAuth();
+  const { currentUser, isAuthLoading, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (currentUser) {
+  if (!isAuthLoading && currentUser) {
     return <Navigate to="/projects" replace />;
   }
 
@@ -19,15 +20,18 @@ export default function LoginPage() {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
+    setIsSubmitting(true);
 
     try {
-      login(form);
+      await login(form);
       navigate(from, { replace: true });
     } catch (authError) {
       setError(authError.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -36,7 +40,7 @@ export default function LoginPage() {
       <section className="auth-card">
         <p className="dashboard-kicker">Welcome back</p>
         <h1>Login to Stacklivo</h1>
-        <p>Use your local account to keep this browser’s saved projects separate.</p>
+        <p>Sign in to load your saved projects from the Stacklivo backend.</p>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <label>
@@ -51,8 +55,8 @@ export default function LoginPage() {
 
           {error ? <div className="auth-error">{error}</div> : null}
 
-          <button className="button primary" type="submit">
-            Login
+          <button className="button primary" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Logging in..." : "Login"}
           </button>
         </form>
 

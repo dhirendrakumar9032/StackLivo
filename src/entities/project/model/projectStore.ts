@@ -7,9 +7,6 @@ import {
 } from "@/entities/project/model/projectTemplates";
 import type { ProjectType } from "@/entities/project/model/projectTemplates";
 
-export const STORAGE_KEY = "react_online_editor_projects_v3";
-const LEGACY_STORAGE_KEYS = ["react_online_editor_projects_v2", "react_online_editor_projects_v1"];
-
 export const ProjectActionTypes = {
   HYDRATE: "project/hydrate",
   CREATE: "project/create",
@@ -29,10 +26,6 @@ function generateId() {
 
 function sortProjects(projects) {
   return [...projects].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-}
-
-function getStorageKey(userId) {
-  return userId ? `${STORAGE_KEY}:${userId}` : STORAGE_KEY;
 }
 
 function getInitialActiveFile(files, existingActiveFile) {
@@ -144,51 +137,6 @@ function normalizeProject(project) {
     createdAt: project.createdAt || new Date().toISOString(),
     updatedAt: project.updatedAt || new Date().toISOString(),
   };
-}
-
-function readStorageRecord(userId = null) {
-  if (typeof localStorage === "undefined") {
-    return null;
-  }
-
-  if (userId) {
-    return localStorage.getItem(getStorageKey(userId));
-  }
-
-  return localStorage.getItem(getStorageKey(userId)) || LEGACY_STORAGE_KEYS.map((key) => localStorage.getItem(key)).find(Boolean);
-}
-
-export function loadProjectsFromStorage(userId = null) {
-  try {
-    const raw = readStorageRecord(userId);
-
-    if (!raw) {
-      return [];
-    }
-
-    const parsed = JSON.parse(raw);
-
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-
-    return sortProjects(parsed.map(normalizeProject).filter(Boolean));
-  } catch (error) {
-    console.error("Unable to parse stored projects", error);
-    return [];
-  }
-}
-
-export function persistProjectsToStorage(projects) {
-  persistProjectsToUserStorage(projects);
-}
-
-export function persistProjectsToUserStorage(projects, userId = null) {
-  if (typeof localStorage === "undefined") {
-    return;
-  }
-
-  localStorage.setItem(getStorageKey(userId), JSON.stringify(projects));
 }
 
 export function createProjectEntity(name, existingProjectCount, projectType = PROJECT_TYPES.REACT, options = {}) {

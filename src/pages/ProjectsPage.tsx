@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/entities/auth/model/AuthContext";
 import { useProjects } from "@/entities/project/model/ProjectsContext";
 import { getProjectEditorPath } from "@/entities/project/model/projectRoutes";
 import { isUserCreatedProject } from "@/entities/project/model/projectStore";
@@ -10,22 +11,24 @@ import {
   QUESTION_LANGUAGES,
   createQuestionProjectFiles,
   getQuestionActiveFile,
-  getCodingQuestionByTitle,
   getQuestionProjectType,
 } from "@/features/questions/model/codingQuestions";
 
 function isSavedWorkspaceProject(project) {
-  return isUserCreatedProject(project) && !getCodingQuestionByTitle(project.name);
+  return isUserCreatedProject(project);
 }
 
 export default function ProjectsPage() {
-  const { projects, createProject } = useProjects();
+  const { currentUser, isAuthLoading } = useAuth();
+  const { projects, createProject, isProjectsLoading, projectsError } = useProjects();
   const [newProjectName, setNewProjectName] = useState("");
   const [projectType, setProjectType] = useState(PROJECT_TYPES.REACT);
   const [questionLanguage, setQuestionLanguage] = useState(QUESTION_LANGUAGES.ALL);
   const [questionDifficulty, setQuestionDifficulty] = useState("All");
   const [questionCategory, setQuestionCategory] = useState("All");
   const [questionSearch, setQuestionSearch] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
   const navigate = useNavigate();
   const savedProjects = useMemo(() => projects.filter(isSavedWorkspaceProject), [projects]);
   const reactProjectCount = savedProjects.filter((project) => project.type !== PROJECT_TYPES.JAVASCRIPT).length;
@@ -57,22 +60,54 @@ export default function ProjectsPage() {
     });
   }, [questionCategory, questionDifficulty, questionLanguage, questionSearch]);
 
-  const handleCreateProject = (event) => {
-    event.preventDefault();
+  const requireAccount = () => {
+    if (currentUser) {
+      return true;
+    }
 
-    const createdProject = createProject(newProjectName, projectType);
-    setNewProjectName("");
-    navigate(getProjectEditorPath(createdProject));
+    navigate("/login", { state: { from: { pathname: "/" } } });
+    return false;
   };
 
-  const handleStartQuestion = (question) => {
-    const project = createProject(question.title, getQuestionProjectType(question), {
-      activeFile: getQuestionActiveFile(question),
-      files: createQuestionProjectFiles(question),
-      practiceQuestionId: question.id,
-    });
+  const handleCreateProject = async (event) => {
+    event.preventDefault();
 
-    navigate(getProjectEditorPath(project));
+    if (!requireAccount()) {
+      return;
+    }
+
+    setActionError("");
+    setIsCreatingProject(true);
+
+    try {
+      const createdProject = await createProject(newProjectName, projectType);
+      setNewProjectName("");
+      navigate(getProjectEditorPath(createdProject));
+    } catch (error) {
+      setActionError(error.message || "Unable to create project.");
+    } finally {
+      setIsCreatingProject(false);
+    }
+  };
+
+  const handleStartQuestion = async (question) => {
+    if (!requireAccount()) {
+      return;
+    }
+
+    setActionError("");
+
+    try {
+      const project = await createProject(question.title, getQuestionProjectType(question), {
+        activeFile: getQuestionActiveFile(question),
+        files: createQuestionProjectFiles(question),
+        practiceQuestionId: question.id,
+      });
+
+      navigate(getProjectEditorPath(project));
+    } catch (error) {
+      setActionError(error.message || "Unable to open question.");
+    }
   };
 
   return (
@@ -140,11 +175,15 @@ export default function ProjectsPage() {
                 placeholder="Project name (optional)"
                 maxLength={50}
               />
-              <button className="button primary" type="submit">
-                Create workspace
+              <button className="button primary" type="submit" disabled={isAuthLoading || isCreatingProject}>
+                {isCreatingProject ? "Creating..." : "Create workspace"}
               </button>
             </div>
           </form>
+
+          {actionError || projectsError ? (
+            <p className="auth-error">{actionError || projectsError}</p>
+          ) : null}
         </div>
       </section>
 
@@ -208,7 +247,13 @@ export default function ProjectsPage() {
 
         <div className="question-list">
           {filteredQuestions.map((question) => (
-            <button className="question-row" key={question.id} type="button" onClick={() => handleStartQuestion(question)}>
+            <button
+              className="question-row"
+              disabled={isAuthLoading || isProjectsLoading}
+              key={question.id}
+              type="button"
+              onClick={() => handleStartQuestion(question)}
+            >
               <span className="question-status" aria-hidden="true" />
               <span className="question-main">
                 <strong>{question.title}</strong>

@@ -1,6 +1,6 @@
 # Stacklivo
 
-Stacklivo is a browser-based React and JavaScript playground for building, practicing, and previewing frontend code directly in the browser. It combines a Monaco-powered editor, Sandpack React preview, JavaScript terminal output, a practice question library, and local project management in one focused workspace.
+Stacklivo is a browser-based React and JavaScript playground for building, practicing, and previewing frontend code directly in the browser. It combines a Monaco-powered editor, Sandpack React preview, JavaScript terminal output, a practice question library, and MongoDB-backed project management in one focused workspace.
 
 Live app: [https://stack-livo.vercel.app/](https://stack-livo.vercel.app/)
 
@@ -22,8 +22,8 @@ Live app: [https://stack-livo.vercel.app/](https://stack-livo.vercel.app/)
 - Search and install NPM packages
 - Keep practice tasks separate from manually created projects
 - Manage saved React/JS projects on a dedicated Projects page
-- Local login and signup flow using localStorage
-- Per-user local project storage for development/demo usage
+- Backend login and signup with HTTP-only JWT cookies
+- Per-user MongoDB project storage
 - Vercel-ready API functions for package search and package resolution
 
 ---
@@ -43,11 +43,14 @@ Live app: [https://stack-livo.vercel.app/](https://stack-livo.vercel.app/)
 - Lucide React
 - React Arborist
 
-### Local API
+### Backend
 
 - Node.js
 - Express
 - CORS
+- MongoDB
+- Mongoose
+- JWT
 
 ### Production API
 
@@ -77,8 +80,10 @@ react-online-editor/
 │   └── packages/
 │       ├── resolve.js
 │       └── search.js
-├── server/
-│   └── index.js
+├── backend/
+│   ├── src/
+│   ├── package.json
+│   └── README.md
 ├── src/
 │   ├── app/
 │   ├── entities/
@@ -88,6 +93,7 @@ react-online-editor/
 │   ├── main.tsx
 │   └── styles.scss
 ├── package.json
+├── .env.example
 ├── vercel.json
 ├── vite.config.ts
 └── README.md
@@ -113,9 +119,19 @@ cd Replit
 
 ```bash
 npm install
+npm --prefix backend install
 ```
 
-### 4. Start the development app
+### 4. Configure environment files
+
+```bash
+cp .env.example .env
+cp backend/.env.example backend/.env
+```
+
+For local development, `VITE_API_URL` can stay empty because Vite proxies `/api` to the backend.
+
+### 5. Start the development app
 
 ```bash
 npm run dev
@@ -124,7 +140,7 @@ npm run dev
 This starts both:
 
 - Vite frontend dev server
-- Local Express API server
+- Separate Express/MongoDB backend from `backend/`
 
 Open the app in your browser:
 
@@ -140,7 +156,7 @@ http://localhost:5173
 npm run dev
 ```
 
-Runs the Vite frontend and local Express API together.
+Runs the Vite frontend and the separate backend app together.
 
 ```bash
 npm run dev:web
@@ -149,10 +165,10 @@ npm run dev:web
 Runs only the Vite frontend.
 
 ```bash
-npm run dev:api
+npm run dev:backend
 ```
 
-Runs only the local Express API.
+Runs only the separate backend app from `backend/`.
 
 ```bash
 npm run build
@@ -166,61 +182,55 @@ npm run preview
 
 Serves the production build locally.
 
-```bash
-npm run start:api
-```
-
-Starts the local API server.
-
----
-
 ## Main Routes
 
 ```txt
 /                 Practice library and new workspace dashboard
 /projects         Saved React/JS projects table
-/editor/:slug     Code editor workspace
-/preview/:slug    Standalone app preview
-/login            Local login page
-/signup           Local signup page
+/editor/:id       Code editor workspace
+/preview/:id      Standalone app preview
+/login            Login page
+/signup           Signup page
 /api/health       Production health check on Vercel
 ```
 
 ---
 
-## Local Auth and Storage
+## Auth and Storage
 
-Stacklivo currently uses localStorage for authentication and project persistence.
+Stacklivo uses the separate Express backend for authentication and project persistence.
 
 This means:
 
-- Users can create local demo accounts
-- Each local user gets a separate saved project list
-- Projects are stored in the browser
+- Users can create backend accounts
+- Auth sessions use HTTP-only JWT cookies
+- Each user gets a separate saved project list
+- Projects are stored in MongoDB
 - Practice-library tasks are not shown as saved projects
 
-Important: localStorage auth is for development/demo use only. For production user accounts, replace this with backend authentication and database-backed project storage.
+For local development, keep MongoDB running in Compass or as a local MongoDB service and copy `backend/.env.example` to `backend/.env`.
 
 ---
 
 ## API Behavior
 
-Stacklivo uses package APIs for NPM package search and dependency resolution.
+Stacklivo uses the backend API for auth, project storage, NPM package search, and dependency resolution.
 
-Local development uses:
+Local development uses the separate backend app:
 
 ```txt
-server/index.js
+backend/src/server.js
 ```
 
-Vercel production uses:
+The lightweight Vercel API functions currently provide:
 
 ```txt
+api/health.js
 api/packages/search.js
 api/packages/resolve.js
 ```
 
-The production API functions include cache headers to reduce repeated NPM registry calls.
+For production auth and project storage, deploy the backend separately and set `VITE_API_URL` in the frontend environment to that backend URL.
 
 ---
 
@@ -251,8 +261,7 @@ The `vercel.json` file keeps frontend routes working after refresh:
 
 ## Future Improvements
 
-- Backend authentication
-- Cloud project storage
+- Hosted backend deployment
 - User profile and saved progress
 - Infinite scroll for the practice library
 - Practice completion tracking

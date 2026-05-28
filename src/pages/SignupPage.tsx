@@ -3,12 +3,13 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/entities/auth/model/AuthContext";
 
 export default function SignupPage() {
-  const { currentUser, signup } = useAuth();
+  const { currentUser, isAuthLoading, signup } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (currentUser) {
+  if (!isAuthLoading && currentUser) {
     return <Navigate to="/projects" replace />;
   }
 
@@ -16,15 +17,18 @@ export default function SignupPage() {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
+    setIsSubmitting(true);
 
     try {
-      signup(form);
+      await signup(form);
       navigate("/projects", { replace: true });
     } catch (authError) {
       setError(authError.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -33,7 +37,7 @@ export default function SignupPage() {
       <section className="auth-card">
         <p className="dashboard-kicker">Start saving</p>
         <h1>Create your account</h1>
-        <p>This is local-only for now, so it is perfect for development and easy to replace with backend auth later.</p>
+        <p>Create a Stacklivo account backed by MongoDB so your projects are saved outside the browser.</p>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <label>
@@ -60,8 +64,8 @@ export default function SignupPage() {
 
           {error ? <div className="auth-error">{error}</div> : null}
 
-          <button className="button primary" type="submit">
-            Sign up
+          <button className="button primary" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Creating..." : "Sign up"}
           </button>
         </form>
 

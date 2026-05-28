@@ -2,10 +2,10 @@ import { useMemo } from "react";
 import * as ReactRuntime from "react";
 import * as ReactDOMClientRuntime from "react-dom/client";
 import * as JSXRuntime from "react/jsx-runtime";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
+import { useAuth } from "@/entities/auth/model/AuthContext";
 import { useProjects } from "@/entities/project/model/ProjectsContext";
-import { loadProjectPreviewSnapshot } from "@/entities/project/model/projectPreviewSnapshot";
 import { findProjectByRouteParam } from "@/entities/project/model/projectRoutes";
 import { removeDuplicateBoilerplateFiles } from "@/entities/project/model/projectStore";
 import { normalizeProjectType } from "@/entities/project/model/projectTemplates";
@@ -18,12 +18,15 @@ window.__STACKLIVO_JSX_RUNTIME__ = JSXRuntime;
 
 export default function PreviewPage() {
   const { projectSlug } = useParams();
-  const location = useLocation();
-  const { projects } = useProjects();
-  const savedPreview = loadProjectPreviewSnapshot(location.pathname);
-  const project = savedPreview || findProjectByRouteParam(projects, projectSlug);
+  const { currentUser, isAuthLoading } = useAuth();
+  const { projects, isProjectsLoading } = useProjects();
+  const project = findProjectByRouteParam(projects, projectSlug);
 
-  if (!project) {
+  if (isAuthLoading || isProjectsLoading) {
+    return <main className="standalone-preview-page" />;
+  }
+
+  if (!currentUser || !project) {
     return (
       <main className="not-found">
         <h1>Preview not found</h1>

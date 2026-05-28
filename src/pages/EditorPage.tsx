@@ -3,13 +3,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { SandpackProvider } from "@codesandbox/sandpack-react";
 import { aquaBlue } from "@codesandbox/sandpack-themes";
 
+import { useAuth } from "@/entities/auth/model/AuthContext";
 import { useProjects } from "@/entities/project/model/ProjectsContext";
-import { saveProjectPreviewSnapshot } from "@/entities/project/model/projectPreviewSnapshot";
 import { removeDuplicateBoilerplateFiles } from "@/entities/project/model/projectStore";
 import {
-  createProjectSlug,
   findProjectByRouteParam,
   getProjectEditorPath,
+  getProjectRouteKey,
   getProjectPreviewPath,
 } from "@/entities/project/model/projectRoutes";
 import { normalizeProjectType, PROJECT_TYPES } from "@/entities/project/model/projectTemplates";
@@ -23,9 +23,11 @@ import {
 export default function EditorPage() {
   const { projectSlug } = useParams();
   const navigate = useNavigate();
+  const { currentUser, isAuthLoading } = useAuth();
 
   const {
     projects,
+    isProjectsLoading,
     updateProject,
     saveEditorSnapshot,
     addProjectDependency,
@@ -81,23 +83,6 @@ export default function EditorPage() {
     [project, addProjectDependency]
   );
 
-  const onPreviewSnapshot = useCallback(
-    (snapshot) => {
-      if (!project || !previewPath) {
-        return;
-      }
-
-      saveProjectPreviewSnapshot(previewPath, {
-        ...project,
-        type: projectType,
-        dependencies: project.dependencies || {},
-        files: snapshot.files,
-        activeFile: snapshot.activeFile,
-      });
-    },
-    [previewPath, project, projectType]
-  );
-
   const sandpackOptions = useMemo(
     () => ({
       activeFile,
@@ -120,10 +105,36 @@ export default function EditorPage() {
       return;
     }
 
-    if (projectSlug !== createProjectSlug(project.name)) {
+    if (projectSlug !== getProjectRouteKey(project)) {
       navigate(projectPath, { replace: true });
     }
   }, [navigate, project, projectPath, projectSlug]);
+
+  if (isAuthLoading || isProjectsLoading) {
+    return (
+      <main className="not-found">
+        <h1>Loading workspace</h1>
+        <p>Getting your project from Stacklivo.</p>
+      </main>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <main className="not-found">
+        <h1>Login required</h1>
+        <p>Sign in to open your saved Stacklivo projects.</p>
+
+        <button
+          className="button primary"
+          type="button"
+          onClick={() => navigate("/login", { state: { from: { pathname: `/editor/${projectSlug || ""}` } } })}
+        >
+          Login
+        </button>
+      </main>
+    );
+  }
 
   if (!project) {
     return (
@@ -157,7 +168,6 @@ export default function EditorPage() {
         projectDependencies={project.dependencies || {}}
         practiceQuestion={practiceQuestion}
         previewPath={previewPath}
-        onPreviewSnapshot={onPreviewSnapshot}
         onRenameProject={onRenameProject}
         onSnapshotChange={onSnapshotChange}
         onAddDependency={onAddDependency}

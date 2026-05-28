@@ -1,31 +1,57 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/entities/auth/model/AuthContext";
 import { useProjects } from "@/entities/project/model/ProjectsContext";
 import { getProjectEditorPath } from "@/entities/project/model/projectRoutes";
 import { isUserCreatedProject } from "@/entities/project/model/projectStore";
 import { PROJECT_TYPES } from "@/entities/project/model/projectTemplates";
-import { getCodingQuestionByTitle } from "@/features/questions/model/codingQuestions";
 import { formatDateTime } from "@/shared/lib/date";
 
 function isSavedWorkspaceProject(project) {
-  return isUserCreatedProject(project) && !getCodingQuestionByTitle(project.name);
+  return isUserCreatedProject(project);
 }
 
 export default function SavedProjectsPage() {
-  const { projects, deleteProject } = useProjects();
+  const { currentUser, isAuthLoading } = useAuth();
+  const { projects, isProjectsLoading, projectsError, deleteProject } = useProjects();
   const savedProjects = useMemo(() => projects.filter(isSavedWorkspaceProject), [projects]);
   const reactProjectCount = savedProjects.filter((project) => project.type !== PROJECT_TYPES.JAVASCRIPT).length;
   const jsProjectCount = savedProjects.filter((project) => project.type === PROJECT_TYPES.JAVASCRIPT).length;
 
-  const handleDeleteProject = (projectId) => {
+  const handleDeleteProject = async (projectId) => {
     const shouldDelete = window.confirm("Delete this project permanently?");
 
     if (!shouldDelete) {
       return;
     }
 
-    deleteProject(projectId);
+    await deleteProject(projectId);
   };
+
+  if (isAuthLoading || isProjectsLoading) {
+    return (
+      <main className="projects-page saved-projects-page">
+        <section className="empty-state">
+          <strong>Loading projects</strong>
+          <p>Getting your saved Stacklivo workspaces.</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <main className="projects-page saved-projects-page">
+        <section className="empty-state">
+          <strong>Login required</strong>
+          <p>Sign in to see your saved React projects and JavaScript playgrounds.</p>
+          <Link className="button primary" to="/login" state={{ from: { pathname: "/projects" } }}>
+            Login
+          </Link>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="projects-page saved-projects-page">
@@ -55,6 +81,8 @@ export default function SavedProjectsPage() {
       </header>
 
       <section className="projects-table-section">
+        {projectsError ? <p className="auth-error">{projectsError}</p> : null}
+
         <div className="projects-table-header">
           <div>
             <p>All projects</p>

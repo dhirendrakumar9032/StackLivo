@@ -9,12 +9,16 @@ export function createProjectSlug(projectName) {
   return slug || "project";
 }
 
+export function getProjectRouteKey(project) {
+  return project?.id || createProjectSlug(project?.name);
+}
+
 export function getProjectEditorPath(project) {
-  return `/editor/${encodeURIComponent(createProjectSlug(project?.name))}`;
+  return `/editor/${encodeURIComponent(getProjectRouteKey(project))}`;
 }
 
 export function getProjectPreviewPath(project) {
-  return `/preview/${encodeURIComponent(createProjectSlug(project?.name))}`;
+  return `/preview/${encodeURIComponent(getProjectRouteKey(project))}`;
 }
 
 export function findProjectByRouteParam(projects, routeParam) {
